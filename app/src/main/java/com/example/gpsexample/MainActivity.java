@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,7 +31,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+
+public class MainActivity extends AppCompatActivity implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     private static final String TAG = "MainActivity";
     private TextView mLatitudeTextView;
@@ -57,13 +59,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Button startGPS;
 
     //Layout
-    private LinearLayout xtra;
-
+    private LinearLayout xtra,acc;
 
 
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
-    private LocationManager mLocationManager;
 
     private LocationRequest mLocationRequest;
     private com.google.android.gms.location.LocationListener listener;
@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private boolean HIGH_ACCURACY = true; /* 2 sec */
 
     private LocationManager locationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,27 +83,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mLongitudeTextView = (TextView) findViewById((R.id.longitude_textview));
 
         //mode
-        googleApi=(RadioButton)findViewById(R.id.googleAPI);
-        locationApi=(RadioButton)findViewById(R.id.androidAPI);
+        googleApi = (RadioButton) findViewById(R.id.googleAPI);
+        locationApi = (RadioButton) findViewById(R.id.androidAPI);
 
         //criteria
-        timeGap=(TextView) findViewById(R.id.timeGap);;
-        distanceGap=(TextView) findViewById(R.id.distanceGap);
+        timeGap = (TextView) findViewById(R.id.timeGap);
+        distanceGap = (TextView) findViewById(R.id.distanceGap);
 
         //accuracy
-        highAccuracy=(RadioButton)findViewById(R.id.highAccuracy);;
-        balancedAccuracy=(RadioButton)findViewById(R.id.balancedAccuracy);
+        highAccuracy = (RadioButton) findViewById(R.id.highAccuracy);
+        balancedAccuracy = (RadioButton) findViewById(R.id.balancedAccuracy);
 
         //gps config
-        deleteGPS=(CheckBox) findViewById(R.id.resetGPS);
-        xtraTime=(CheckBox) findViewById(R.id.xtraTime);
-        xtraData=(CheckBox) findViewById(R.id.xtraData);
+        deleteGPS = (CheckBox) findViewById(R.id.resetGPS);
+        xtraTime = (CheckBox) findViewById(R.id.xtraTime);
+        xtraData = (CheckBox) findViewById(R.id.xtraData);
 
         //buttons
-        startGPS=(Button) findViewById(R.id.startLoc);
+        startGPS = (Button) findViewById(R.id.startLoc);
 
         //layout
-        xtra=(LinearLayout) findViewById(R.id.xtra);
+        xtra = (LinearLayout) findViewById(R.id.xtra);
+        acc = (LinearLayout) findViewById(R.id.acc);
 
 
         mGoogleApiClient = new GoogleApiClient.Builder(MainActivity.this)
@@ -112,14 +114,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
 
 
-        mLocationManager = (LocationManager)MainActivity.this.getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) MainActivity.this.getSystemService(Context.LOCATION_SERVICE);
+
+//        startLocationManager();
+//
+//        stopLocationManager();
 
         startGPS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(googleApi.isChecked()) {
+                if (googleApi.isChecked()) {
 
-                    Toast.makeText(MainActivity.this, "Start "+((googleApi.isChecked())?"Google Play Loc":"Android Loc"), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Start " + ((googleApi.isChecked()) ? "Google Play Loc" : "Android Loc"), Toast.LENGTH_SHORT).show();
+
+                    stopLocationManager();
 
                     if (mGoogleApiClient.isConnected()) {
                         mGoogleApiClient.disconnect();
@@ -128,24 +136,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     if (mGoogleApiClient != null) {
                         mGoogleApiClient.connect();
                     }
-                }else if (locationApi.isChecked()){
+                } else if (locationApi.isChecked()) {
 
-                    Toast.makeText(MainActivity.this, "Start "+((googleApi.isChecked())?"Google Play Loc":"Android Loc"), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Start " + ((googleApi.isChecked()) ? "Google Play Loc" : "Android Loc"), Toast.LENGTH_SHORT).show();
 
                     if (mGoogleApiClient.isConnected()) {
                         stopLocationUpdates();
                         mGoogleApiClient.disconnect();
                     }
+
+                    startLocationManager();
                 }
             }
         });
 
+        acc.setVisibility(View.GONE);
         googleApi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
+                    acc.setVisibility(View.VISIBLE);
                     xtra.setVisibility(View.INVISIBLE);
-                }else {
+                } else {
+                    acc.setVisibility(View.GONE);
                     xtra.setVisibility(View.VISIBLE);
                 }
             }
@@ -153,6 +166,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
 //        checkLocation(); //check whether location service is enable or not in your  phone
+    }
+
+    private void stopLocationManager() {
+        locationManager.removeUpdates(this);
+    }
+
+    private void startLocationManager() {
+        populateConstants();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_INTERVAL, DISTANCE_INTERVAL, this);
+
+
     }
 
     private void populateConstants() {
@@ -214,9 +249,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onStop() {
         super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
+//        if (mGoogleApiClient.isConnected()) {
+//            mGoogleApiClient.disconnect();
+//        }
     }
 
     protected void startLocationUpdates() {
@@ -267,6 +302,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         xtra();
     }
 
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
     private void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
     }
@@ -311,4 +361,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
 }

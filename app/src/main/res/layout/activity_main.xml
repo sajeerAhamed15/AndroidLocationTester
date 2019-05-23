@@ -109,34 +109,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <TextView
-                android:text="Set priority"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <RadioGroup
+
+
+            <LinearLayout
+                android:id="@+id/acc"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <RadioButton
-                    android:checked="true"
-                    android:id="@+id/highAccuracy"
-                    android:text="HIGH_ACCURACY"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:text="Set priority"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
-                <RadioButton
-                    android:id="@+id/balancedAccuracy"
-                    android:text="BALANCED_POWER_ACCURACY"
+                <RadioGroup
+                    android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-                <!--<RadioButton-->
-                <!--android:text="LOW_POWER"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content" />-->
-                <!--<RadioButton-->
-                <!--android:text="NO_POWER"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content" />-->
-            </RadioGroup>
+                    android:layout_height="wrap_content">
+                    <RadioButton
+                        android:checked="true"
+                        android:id="@+id/highAccuracy"
+                        android:text="HIGH_ACCURACY"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <RadioButton
+                        android:id="@+id/balancedAccuracy"
+                        android:text="BALANCED_POWER_ACCURACY"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                    <!--<RadioButton-->
+                    <!--android:text="LOW_POWER"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content" />-->
+                    <!--<RadioButton-->
+                    <!--android:text="NO_POWER"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content" />-->
+                </RadioGroup>
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/xtra"
