@@ -4,4 +4,4 @@ This is an android application to test Location service. You can play around wit
 When you press "Start location" button, the location is logged in the root directory of the device in a .txt file. You can use the data later to compare for accurate paths.
 
 
-![alt text](ss.png)
+![alt text](ss1.png)
